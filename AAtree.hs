@@ -39,7 +39,7 @@ insert :: Ord a => a -> AATree a -> AATree a
 insert = error "insert not implemented"
 
 inorder :: AATree a -> [a]
-inorder = error "inord not impl"
+inorder = error "pooop"
 
 
 size :: AATree a -> Int
@@ -88,18 +88,29 @@ isSorted (x:y:xs)
 -- where each conjunct checks one aspect of the invariant
 
 checkLevels ::Ord a => AATree a -> Bool
-checkLevels Empty                        = False 
-checkLevels (Node (val,h) Empty Empty)   = True  -- same level pattern match binds higher.
-checkLevels (Node (val,h) left right)    = (hasElems left && hasElems right) ||
-                                            (leftChildOK left)
-                                            
-
+checkLevels (Node (val,h) left right) = leftChildOK left && rightChildOK right &&
+                                        rightGrandchildOK right
     where 
-        leftChildOK Empty                   = False
-        leftChildOK (Node (val',h') _ _ )   = (h-1 == h') && (val' < val)
-
+    leftChildOK Empty = isEmpty right
+    leftChildOK (Node (_,h') _ _)  = (h-1) == h'   
         
-                      
+    rightChildOK Empty = isEmpty left  -- decided true if the left child is empty.
+    rightChildOK (Node (_,h') left' right') 
+        | hasElems left' && hasElems right' = (h == h') -- where right has grandChilds
+        | isEmpty left                      = False
+        | otherwise                         = ((h-1) == h')    
+
+    rightGrandchildOK (Node _ gleft gright) -- dont have to look 
+        |  isEmpty gleft && isEmpty gleft = True
+        |  hasElems left && 
+           hasElems gleft &&
+           hasElems gright                =  ((h-1) == getHeight gleft) && ((h-1) == getHeight gright) 
+        | otherwise                       = False          
+
+getHeight :: AATree a -> Int
+getHeight Empty = 0
+getHeight (Node (_,h) _ _)= h
+
 hasElems :: AATree a -> Bool
 hasElems Empty             = False
 hasElems (Node _ _ _ )     = True 
@@ -121,7 +132,10 @@ rightSub (Node _ left right) = right
 --------------------------------------------------------------------------------
 
 emptyChildrenTree :: Num a => AATree a
-emptyChildrenTree = Node (10,1) Empty Empty  
+emptyChildrenTree = Node (10,1) Empty Empty 
+
+leftChildEmptyTree :: Num a => AATree a
+leftChildEmptyTree = Node (10,2) Empty (Node (12,1) Empty Empty ) 
 
 rightChildEmptyTree :: Num a => AATree a
 rightChildEmptyTree = Node (10,2) (Node (11,1) Empty Empty) Empty
@@ -139,7 +153,8 @@ testAATree = Node (5,2)  (left)  (right)
             right = Node (4,2) (Node (2,1) Empty Empty) (Node (1,1) Empty Empty)
 
 testAATree2 :: Num a => AATree a            
-testAATree2  = Node (5,2) (Node (3,1) Empty Empty)(Node (4,1) Empty Empty)
+testAATree2  =                      Node (5,2) 
+                        (Node (3,1) Empty Empty) (Node (4,1) Empty Empty)
 
     
 
