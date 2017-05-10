@@ -39,13 +39,16 @@ insert :: Ord a => a -> AATree a -> AATree a
 insert = error "insert not implemented"
 
 inorder :: AATree a -> [a]
-inorder = error "inorder not implemented"
+inorder = error "inord not impl"
+
 
 size :: AATree a -> Int
-size = error "size not implemented"
+size  Empty = 0
+size (Node _ left right)  = 1 + size left + size right
 
 height :: AATree a -> Int
-height = error "height not implemented"
+height Empty = 0
+height (Node  (_,h) _ _ ) = h 
 
 --------------------------------------------------------------------------------
 -- Optional function
@@ -83,26 +86,25 @@ isSorted (x:y:xs)
 --     rightChildOK node &&
 --     rightGrandchildOK node
 -- where each conjunct checks one aspect of the invariant
-checkLevels :: AATree a -> Bool
-checkLevels Empty                       = True
-checkLevels (Node (_,h) left right)     =   (leftChildOK h left)  && 
-                                            (rightChildOK h right) &&
-                                        rightChildOK h (rightSub right)
-    
-    where 
+checkLevels ::Ord a => AATree a -> Bool
+checkLevels Empty                     = False
+checkLevels (Node _ Empty _)          = False
+checkLevels (Node _ _ Empty )         = False
+checkLevels (Node _ Empty Empty)      = True
+checkLevels (Node (val,h) left right )= (leftChildOK left) && 
+                                        (rightChildOK right)
 
-        leftChildOK _ Empty                           = True
-        leftChildOK pHeight (Node (_,h) _ _ )         = (pHeight-1)   == h
-        
-        rightChildOK _  Empty                         = True
-        rightChildOK pHeight (Node (_,h) left right) 
-            | (isEmpty left && isEmpty right)         =  (pHeight -1) == h 
-            | otherwise                               =   pHeight     == h
+                                        
+    where     
+       leftChildOK (Node (cv,ch) _ _)       =  ((h-1) == ch) && (cv < val)
+       rightChildOK  (Node (cv,ch) l r) 
+            | (isEmpty l && isEmpty r)      =  ((h-1) == ch) && (cv > val)
+            | otherwise                     =       h == ch && (cv > val)
+       
 
-        rightGrandchildOK _ Empty                     = True
-        rightGrandchildOK pHeight (Node (_,h) _ _ )   = (pHeight-1) == h
 
-                        
+
+                      
 
         
 
@@ -122,7 +124,7 @@ rightSub (Node _ left right) = right
 --------------------------------------------------------------------------------
 
 badtestTree   ::  Num a => a-> AATree a
-badtestTree n        = Node (n,4) (left n)  (right n)
+badtestTree n     = Node (n,4) (left n)  (right n)
 
     where left  n = Node (n-2, 3) (Node (n-4, 2) Empty Empty) $Node (n-3, 1) Empty Empty
           right n = Node (n+2, 3) (Node (n+1, 2) Empty Empty) $Node (n+4, 1) Empty Empty
@@ -137,9 +139,6 @@ testAATree2 :: Num a => AATree a
 testAATree2  = Node (5,2) (Node (3,1) Empty Empty)(Node (4,1) Empty Empty)
 
     
-
-
-
 
 
 
