@@ -86,26 +86,23 @@ isSorted (x:y:xs)
 --     rightChildOK node &&
 --     rightGrandchildOK node
 -- where each conjunct checks one aspect of the invariant
+
 checkLevels ::Ord a => AATree a -> Bool
-checkLevels Empty                     = False
-checkLevels (Node _ Empty _)          = False
-checkLevels (Node _ _ Empty )         = False
-checkLevels (Node _ Empty Empty)      = True
-checkLevels (Node (val,h) left right )= (leftChildOK left) && 
-                                        (rightChildOK right)
+checkLevels Empty                        = False 
+checkLevels (Node (val,h) Empty Empty)   = True  -- same level pattern match binds higher.
+checkLevels (Node (val,h) left right)    = (hasElems left && hasElems right) ||
+                                            (leftChildOK left)
+                                            
 
-                                        
-    where     
-       leftChildOK (Node (cv,ch) _ _)       =  ((h-1) == ch) && (cv < val)
-       rightChildOK  (Node (cv,ch) l r) 
-            | (isEmpty l && isEmpty r)      =  ((h-1) == ch) && (cv > val)
-            | otherwise                     =       h == ch && (cv > val)
-       
+    where 
+        leftChildOK Empty                   = False
+        leftChildOK (Node (val',h') _ _ )   = (h-1 == h') && (val' < val)
 
-
-
+        
                       
-
+hasElems :: AATree a -> Bool
+hasElems Empty             = False
+hasElems (Node _ _ _ )     = True 
         
 
 isEmpty :: AATree a -> Bool
@@ -122,6 +119,12 @@ rightSub (Node _ left right) = right
 
 
 --------------------------------------------------------------------------------
+
+emptyChildrenTree :: Num a => AATree a
+emptyChildrenTree = Node (10,1) Empty Empty  
+
+rightChildEmptyTree :: Num a => AATree a
+rightChildEmptyTree = Node (10,2) (Node (11,1) Empty Empty) Empty
 
 badtestTree   ::  Num a => a-> AATree a
 badtestTree n     = Node (n,4) (left n)  (right n)
