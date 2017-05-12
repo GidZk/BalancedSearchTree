@@ -22,24 +22,47 @@ data AATree a = Empty | Node (a,Int) (AATree a) (AATree a)
 
 
 emptyTree :: AATree a
-emptyTree = Empty 
+emptyTree = Empty
 
 get :: Ord a => a -> AATree a -> Maybe a
 get _ Empty                     = Nothing
-get val (Node ( n ,_ ) left right) 
-    | val == n                  = Just val 
+get val (Node ( n ,_ ) left right)
+    | val == n                  = Just val
     | val <  n                  = get val left
     | val >  n                  = get val right
 
 -- You may find it helpful to define
---   split :: AATree a -> AATree a
---   skew  :: AATree a -> AATree a
--- and call these from insert.
+
+split :: AATree a -> AATree a
+split t = error "undefined"
+
+skew  :: AATree a -> AATree a
+skew (Node (val,h) left right) = error "lol"  --(Node (leftVal,h) 
+
 insert :: Ord a => a -> AATree a -> AATree a
-insert = error "insert not implemented"
+insert n Empty  = (Node (n,1) Empty Empty)
+insert n (Node (val,h) right left) 
+    | n < val               = insertLeft 
+    | n > val               = insertRight
+    | n == val              = origTree
+
+    where 
+        insertLeft  
+            |h == 1     = skew (Node (val,h) (insert n left) right)
+            |otherwise  =      (Node (val,h) (insert n left) right)
+        
+        insertRight = (Node (val,h) left (insert n right))
+        origTree    = (Node (val,h) right left)
+
+
+
+
+
+
 
 inorder :: AATree a -> [a]
-inorder = error "pooop"
+inorder Empty                      = []
+inorder (Node (val,h) left right)  = inorder left ++ [val] ++ inorder right
 
 
 size :: AATree a -> Int
@@ -48,13 +71,16 @@ size (Node _ left right)  = 1 + size left + size right
 
 height :: AATree a -> Int
 height Empty = 0
-height (Node  (_,h) _ _ ) = h 
+height (Node  (_,h) _ _ ) = h
+
+
 
 --------------------------------------------------------------------------------
 -- Optional function
 
 remove :: Ord a => a -> AATree a -> AATree a
 remove = error "remove not implemented"
+ 
 
 --------------------------------------------------------------------------------
 -- Check that an AA tree is ordered and obeys the AA invariants
@@ -74,9 +100,7 @@ isSorted []         = True
 isSorted [x]        = True
 isSorted (x:y:xs)
     | x <= y        = isSorted xs
-    | x > y         = False 
-
-
+    | x > y         = False
 
 
 -- Check if the invariant is true for a single AA node
@@ -90,22 +114,24 @@ isSorted (x:y:xs)
 checkLevels ::Ord a => AATree a -> Bool
 checkLevels (Node (val,h) left right) = leftChildOK left && rightChildOK right &&
                                         rightGrandchildOK right
-    where 
+    where
     leftChildOK Empty = isEmpty right
-    leftChildOK (Node (_,h') _ _)  = (h-1) == h'   
-        
+    leftChildOK (Node (_,h') _ _)  = (h-1) == h'
+
     rightChildOK Empty = isEmpty left  -- decided true if the left child is empty.
-    rightChildOK (Node (_,h') left' right') 
+    rightChildOK (Node (_,h') left' right')
         | hasElems left' && hasElems right' = (h == h') -- where right has grandChilds
         | isEmpty left                      = False
-        | otherwise                         = ((h-1) == h')    
+        | otherwise                         = ((h-1) == h')
 
-    rightGrandchildOK (Node _ gleft gright) -- dont have to look 
+    rightGrandchildOK (Node _ gleft gright) -- dont have to look
         |  isEmpty gleft && isEmpty gleft = True
-        |  hasElems left && 
+        |  hasElems left &&
            hasElems gleft &&
-           hasElems gright                =  ((h-1) == getHeight gleft) && ((h-1) == getHeight gright) 
-        | otherwise                       = False          
+           hasElems gright                =  ((h-1) == getHeight gleft) && ((h-1) == getHeight gright)
+        | otherwise                       = False
+
+
 
 getHeight :: AATree a -> Int
 getHeight Empty = 0
@@ -113,53 +139,45 @@ getHeight (Node (_,h) _ _)= h
 
 hasElems :: AATree a -> Bool
 hasElems Empty             = False
-hasElems (Node _ _ _ )     = True 
-        
+hasElems (Node _ _ _ )     = True
+
 
 isEmpty :: AATree a -> Bool
 isEmpty Empty   = True
-isEmpty _       = False 
+isEmpty _       = False
 
 leftSub :: AATree a -> AATree a
 leftSub Empty = Empty
-leftSub (Node _ left right) = left 
+leftSub (Node _ left right) = left
 
 rightSub :: AATree a -> AATree a
 rightSub Empty = Empty
-rightSub (Node _ left right) = right 
+rightSub (Node _ left right) = right
 
 
 --------------------------------------------------------------------------------
 
 emptyChildrenTree :: Num a => AATree a
-emptyChildrenTree = Node (10,1) Empty Empty 
+emptyChildrenTree = Node (10,1) Empty Empty
 
 leftChildEmptyTree :: Num a => AATree a
-leftChildEmptyTree = Node (10,2) Empty (Node (12,1) Empty Empty ) 
+leftChildEmptyTree = Node (10,2) Empty (Node (12,1) Empty Empty )
 
 rightChildEmptyTree :: Num a => AATree a
 rightChildEmptyTree = Node (10,2) (Node (11,1) Empty Empty) Empty
 
-badtestTree   ::  Num a => a-> AATree a
-badtestTree n     = Node (n,4) (left n)  (right n)
+noAAtestTree   ::  Num a => a-> AATree a
+noAAtestTree n    = Node (n,4) (left)  (right)
 
-    where left  n = Node (n-2, 3) (Node (n-4, 2) Empty Empty) $Node (n-3, 1) Empty Empty
-          right n = Node (n+2, 3) (Node (n+1, 2) Empty Empty) $Node (n+4, 1) Empty Empty
+    where left  = Node (n-2, 3) (Node (n-4, 2) Empty Empty) $Node (n-3, 1) Empty Empty
+          right = Node (n+2, 3) (Node (n+1, 2) Empty Empty) $Node (n+4, 1) Empty Empty
 
 
-testAATree :: Num a => AATree a 
-testAATree = Node (5,2)  (left)  (right)   
+testAATree :: Num a => AATree a
+testAATree = Node (5,2)  (left)  (right)
     where   left = Node (3,1) Empty Empty
-            right = Node (4,2) (Node (2,1) Empty Empty) (Node (1,1) Empty Empty)
+            right = Node (7,2) (Node (6,1) Empty Empty) (Node (10,1) Empty Empty)
 
-testAATree2 :: Num a => AATree a            
-testAATree2  =                      Node (5,2) 
-                        (Node (3,1) Empty Empty) (Node (4,1) Empty Empty)
-
-    
-
-
-
-
-
-
+testAATree2 :: Num a => AATree a
+testAATree2  =                      Node (5,2)
+                        (Node (3,1) Empty Empty) (Node (10,1) Empty Empty)
