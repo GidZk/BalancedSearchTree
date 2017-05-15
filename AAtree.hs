@@ -34,30 +34,36 @@ get val (Node ( n ,_ ) left right)
 -- You may find it helpful to define
 
 split :: AATree a -> AATree a
-split t = error "undefined"
+split t = error "undef"
 
 skew  :: AATree a -> AATree a
-skew (Node (val,h) left right) = error "lol"  --(Node (leftVal,h) 
+skew (Node (v,h) l r) = (Node (v'(l) ,h')  left' right' )
+    where
+        v' Empty                = error "cannot find empty tree."
+        v' (Node (leftV,_) _ _) = leftV
+        h'                      = getHeight l
+        left'   = (leftSub l)
+        right'  = (Node (v,h) (rightSub l) r)
+
+
+
 
 insert :: Ord a => a -> AATree a -> AATree a
-insert n Empty  = (Node (n,1) Empty Empty)
-insert n (Node (val,h) right left) 
-    | n < val               = insertLeft 
-    | n > val               = insertRight
-    | n == val              = origTree
+-- case insertion.
+insert n Empty                      = (Node (n,1) Empty Empty)
 
-    where 
-        insertLeft  
-            |h == 1     = skew (Node (val,h) (insert n left) right)
-            |otherwise  =      (Node (val,h) (insert n left) right)
-        
-        insertRight = (Node (val,h) left (insert n right))
-        origTree    = (Node (val,h) right left)
-
-
-
-
-
+-- could be fixed with a case expression
+--insert n Empty Empty
+insert n (Node (val,h) left right) 
+    -- recursively finds the subtree to the left
+    | n < val                   = 
+        case left of Empty        -> skew (Node (val,h) (insert n Empty) right)
+                     (Node _ _ _) -> (Node (val,h) (insert n left) right)
+    -- recursively finds the subtree to the left
+    | n > val                   = (Node (val,h) left (insert n right))
+    -- returns the originalTree
+    | n == val                  = (Node (val,h) right left)
+    
 
 
 inorder :: AATree a -> [a]
@@ -156,6 +162,18 @@ rightSub (Node _ left right) = right
 
 
 --------------------------------------------------------------------------------
+
+
+
+
+plsSkewMe :: Num a => AATree a
+plsSkewMe = Node (10,2) leftSub rightSub
+    where 
+        leftSub   = (Node (5,2) (Node (1,1) Empty Empty) (Node (7,1) Empty Empty))
+        rightSub  = (Node (11,1) Empty Empty)
+    
+
+
 
 emptyChildrenTree :: Num a => AATree a
 emptyChildrenTree = Node (10,1) Empty Empty
