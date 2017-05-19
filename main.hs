@@ -37,15 +37,6 @@ main = do
   -- calculate and print statistics
   -- use fromIntegral/ceiling/logBase
 
-{-Size: 12582
-Height: 18
-Optimal height: 13
-Height / Optimal height: 1.3846153846153846
-checkTree: True
-First 20 words: A ABP AC AD ADLugha ADNa ADR ADSL ADWabantu ADwaarabu AIDS AL ALigombea AME ANC ANGALIA ARPA ARPANET ASP Abd
-
--}
-
 
 
 

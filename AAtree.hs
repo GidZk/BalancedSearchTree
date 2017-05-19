@@ -20,10 +20,13 @@ module AATree (
 data AATree a = Empty | Node (a,Int) (AATree a) (AATree a)
   deriving (Eq, Show, Read)
 
-
+-- returns a Empty Tree
+-- Complexity : O(1)
 emptyTree :: AATree a
 emptyTree = Empty
 
+-- searches the tree for a specific element 
+-- Complexity : O (log n)
 get :: Ord a => a -> AATree a -> Maybe a
 get _ Empty                     = Nothing
 get val (Node ( n ,_ ) left right)
@@ -31,12 +34,12 @@ get val (Node ( n ,_ ) left right)
     | val <  n                  = get val left
     | val >  n                  = get val right
 
--- You may find it helpful to define
-
+-- fixes invariant of a 3 node if given tree is needed to=
+-- Complexity : O(1)
 split :: AATree a -> AATree a
 split Empty = Empty
 split (Node (v,h) l r) 
-    | plzSplitMe  = (Node (v'(r),h'(r)) lsub rsub)
+    | iNeedSplitplz  = (Node (v'(r),h'(r)) lsub rsub)
     | otherwise                                 = (Node (v,h) l r) 
 
     where
@@ -45,9 +48,11 @@ split (Node (v,h) l r)
         rsub                      = rightSub r
         lsub                      = (Node (v,h) l r')
         r'                        = (leftSub r)
-        plzSplitMe                = (h == getHeight r) && (h == getHeight  (rightSub r))
+        iNeedSplitplz             = (h == getHeight r) && (h == getHeight  (rightSub r))
 
 
+-- rotates the given tree to the right, fixing the invariant so the tree won't have a leftChilds at the sam level
+-- Complexity O(1)
 skew  :: AATree a -> AATree a
 skew (Node (v,h) l r) 
     | h == getHeight(l) =  (Node (v'(l) ,h')  left' right' )
@@ -58,7 +63,16 @@ skew (Node (v,h) l r)
         left'   = (leftSub l)
         right'  = (Node (v,h) (rightSub l) r)
 
+-- inserts a element into the tree at the right position (no duplicates,
+-- maintaining the invariants at all cases.
 
+-- case n < val split skew (tree) there could be many cases where both functions are neeeded. 
+-- it's decided in split and skew function if the current tree will be splitted & skewD.
+
+-- case n > val skew : there is only one way to break invariant, and that could be fixed with a skew
+-- for that particular tree or subtree. 
+
+-- Complexity : O(log n)
 insert :: Ord a => a -> AATree a -> AATree a
 insert n Empty                      = (Node (n,1) Empty Empty)
 insert n (Node (val,h) left right) 
@@ -66,16 +80,19 @@ insert n (Node (val,h) left right)
     | n > val                       = split $ (Node (val,h)  left (insert n right))
     | n == val                      = (Node (val,h) left right)
 
-
+-- takes the elements in the AA Tree and puts them in a list in sorted order
+-- Complexity : O(n)
 inorder :: AATree a -> [a]
 inorder Empty                      = []
 inorder (Node (val,h) left right)  = inorder left ++ [val] ++ inorder right
 
-
+-- counts every node in the AAtree
+--Complexity: O(n)
 size :: AATree a -> Int
 size  Empty = 0
 size (Node _ left right)  = 1 + size left + size right
-
+-- Counts the highest height in the tree : the height of the tree
+-- Complexity : O(n)
 height :: AATree a -> Int
 height Empty = 0
 height (Node  _ l r ) = 1 + max ((height l )) ((height r))
@@ -83,7 +100,7 @@ height (Node  _ l r ) = 1 + max ((height l )) ((height r))
 
 
 --------------------------------------------------------------------------------
--- Optional function
+
 
 remove :: Ord a => a -> AATree a -> AATree a
 remove = error "remove not implemented"
@@ -91,7 +108,7 @@ remove = error "remove not implemented"
 
 --------------------------------------------------------------------------------
 -- Check that an AA tree is ordered and obeys the AA invariants
-
+-- 
 checkTree :: Ord a => AATree a -> Bool
 checkTree root =
   isSorted (inorder root) &&
@@ -101,7 +118,10 @@ checkTree root =
       | isEmpty x = []
       | otherwise = x:nodes (leftSub x) ++ nodes (rightSub x)
 
--- True if the given list is ordered
+
+
+-- checks if a given list is sorted
+--Complexity: O(n)
 isSorted :: Ord a => [a] -> Bool
 isSorted []         = True
 isSorted [x]        = True
@@ -110,14 +130,8 @@ isSorted (x:y:xs)
     | x > y         = False
 
 
--- Check if the invariant is true for a single AA node
--- You may want to write this as a conjunction e.g.
---   checkLevels node =
---     leftChildOK node &&
---     rightChildOK node &&
---     rightGrandchildOK node
--- where each conjunct checks one aspect of the invariant
-
+-- checks the invariants of a given node in the tree
+-- Complexity: O(1)
 checkLevels ::Ord a => AATree a -> Bool
 checkLevels (Node (val,h) left right) = leftChildOK left && rightChildOK right &&
                                         rightGrandchildOK right
@@ -134,35 +148,43 @@ checkLevels (Node (val,h) left right) = leftChildOK left && rightChildOK right &
     rightGrandchildOK (Node (v',h') gleft (Node (_,h'') _ _)) = (h'' <= h') && (h > h'') 
             
 
-
-
+-- gets height of a given node
+-- Complexity : O (1)
 getHeight :: AATree a -> Int
 getHeight Empty = 0
 getHeight (Node (_,h) _ _)= h
 
+-- checks if a given tree is empty or not
+-- Complexity : O(1)
 hasElems :: AATree a -> Bool
 hasElems Empty             = False
 hasElems (Node _ _ _ )     = True
 
-
+-- checks if a given tree is empty
+--Complexity: O(1)
 isEmpty :: AATree a -> Bool
 isEmpty Empty   = True
 isEmpty _       = False
 
+-- gives the left subtree of a given tree
+-- Complexity: O(1)
 leftSub :: AATree a -> AATree a
 leftSub Empty = Empty
 leftSub (Node _ left right) = left
 
+-- gives the right subtree of a given tree
+-- Complexity :O(1)
 rightSub :: AATree a -> AATree a
 rightSub Empty = Empty
 rightSub (Node _ left right) = right
 
 
 --------------------------------------------------------------------------------
+-- 								TESTING AREA 								  --
 
 
 
-
+-- 					some trees I defined for testing						  --
 plsSkewMe :: Num a => AATree a
 plsSkewMe = Node (10,2) leftSub rightSub
     where 
@@ -196,3 +218,5 @@ testAATree = Node (5,2)  (left)  (right)
 testAATree2 :: Num a => AATree a
 testAATree2  =                      Node (5,2)
                         (Node (3,1) Empty Empty) (Node (10,1) Empty Empty)
+
+----------------------------------------------------------------------------------------
