@@ -34,36 +34,37 @@ get val (Node ( n ,_ ) left right)
 -- You may find it helpful to define
 
 split :: AATree a -> AATree a
-split t = error "undef"
+split Empty = Empty
+split (Node (v,h) l r) 
+    | plzSplitMe  = (Node (v'(r),h'(r)) lsub rsub)
+    | otherwise                                 = (Node (v,h) l r) 
+
+    where
+        v' (Node (val,_) _ _)     = val 
+        h' (Node (_,height) _ _)  = height +1 
+        rsub                      = rightSub r
+        lsub                      = (Node (v,h) l r')
+        r'                        = (leftSub r)
+        plzSplitMe                = (h == getHeight r) && (h == getHeight  (rightSub r))
+
 
 skew  :: AATree a -> AATree a
-skew (Node (v,h) l r) = (Node (v'(l) ,h')  left' right' )
+skew (Node (v,h) l r) 
+    | h == getHeight(l) =  (Node (v'(l) ,h')  left' right' )
+    | otherwise         =  (Node (v,h) l r) 
     where
-        v' Empty                = error "cannot find empty tree."
         v' (Node (leftV,_) _ _) = leftV
         h'                      = getHeight l
         left'   = (leftSub l)
         right'  = (Node (v,h) (rightSub l) r)
 
 
-
-
 insert :: Ord a => a -> AATree a -> AATree a
--- case insertion.
 insert n Empty                      = (Node (n,1) Empty Empty)
-
--- could be fixed with a case expression
---insert n Empty Empty
 insert n (Node (val,h) left right) 
-    -- recursively finds the subtree to the left
-    | n < val                   = 
-        case left of Empty        -> skew (Node (val,h) (insert n Empty) right)
-                     (Node _ _ _) -> (Node (val,h) (insert n left) right)
-    -- recursively finds the subtree to the left
-    | n > val                   = (Node (val,h) left (insert n right))
-    -- returns the originalTree
-    | n == val                  = (Node (val,h) right left)
-    
+    | n < val                       = split $ skew $ (Node (val,h) (insert n left) right)
+    | n > val                       = split $ (Node (val,h)  left (insert n right))
+    | n == val                      = (Node (val,h) left right)
 
 
 inorder :: AATree a -> [a]
@@ -77,7 +78,7 @@ size (Node _ left right)  = 1 + size left + size right
 
 height :: AATree a -> Int
 height Empty = 0
-height (Node  (_,h) _ _ ) = h
+height (Node  _ l r ) = 1 + max ((height l )) ((height r))
 
 
 
@@ -121,21 +122,17 @@ checkLevels ::Ord a => AATree a -> Bool
 checkLevels (Node (val,h) left right) = leftChildOK left && rightChildOK right &&
                                         rightGrandchildOK right
     where
-    leftChildOK Empty = isEmpty right
+    leftChildOK Empty = True 
     leftChildOK (Node (_,h') _ _)  = (h-1) == h'
 
-    rightChildOK Empty = isEmpty left  -- decided true if the left child is empty.
-    rightChildOK (Node (_,h') left' right')
-        | hasElems left' && hasElems right' = (h == h') -- where right has grandChilds
-        | isEmpty left                      = False
-        | otherwise                         = ((h-1) == h')
+    rightChildOK Empty = True-- decided true if the left child is empty.
+    rightChildOK (Node (_,h') left' right') = (h == h') || ((h - 1 )== h') 
 
-    rightGrandchildOK (Node _ gleft gright) -- dont have to look
-        |  isEmpty gleft && isEmpty gleft = True
-        |  hasElems left &&
-           hasElems gleft &&
-           hasElems gright                =  ((h-1) == getHeight gleft) && ((h-1) == getHeight gright)
-        | otherwise                       = False
+
+    rightGrandchildOK Empty                 = True
+    rightGrandchildOK (Node _ gleft Empty)  = True
+    rightGrandchildOK (Node (v',h') gleft (Node (_,h'') _ _)) = (h'' <= h') && (h > h'') 
+            
 
 
 
