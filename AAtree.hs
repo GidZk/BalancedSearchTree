@@ -108,7 +108,9 @@ remove = error "remove not implemented"
 
 --------------------------------------------------------------------------------
 -- Check that an AA tree is ordered and obeys the AA invariants
--- 
+
+
+
 checkTree :: Ord a => AATree a -> Bool
 checkTree root =
   isSorted (inorder root) &&
@@ -126,7 +128,7 @@ isSorted :: Ord a => [a] -> Bool
 isSorted []         = True
 isSorted [x]        = True
 isSorted (x:y:xs)
-    | x <= y        = isSorted xs
+    | x <= y        =  y : isSorted xs
     | x > y         = False
 
 
